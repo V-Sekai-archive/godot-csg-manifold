@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="CSGPolygon" inherits="CSGPrimitive" version="4.0">
+<class name="CSGPolygon3D" inherits="CSGPrimitive3D" version="4.0">
 	<brief_description>
 		Extrudes a 2D polygon shape to create a 3D mesh.
 	</brief_description>
@@ -17,7 +17,7 @@
 		<member name="material" type="Material" setter="set_material" getter="get_material">
 			Material to use for the resulting mesh.
 		</member>
-		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="CSGPolygon.Mode" default="0">
+		<member name="mode" type="int" setter="set_mode" getter="get_mode" enum="CSGPolygon3D.Mode" default="0">
 			Extrusion mode.
 		</member>
 		<member name="path_continuous_u" type="bool" setter="set_path_continuous_u" getter="is_path_continuous_u">
@@ -30,12 +30,12 @@
 			If [code]true[/code] the start and end of our path are joined together ensuring there is no seam when [member mode] is [constant MODE_PATH].
 		</member>
 		<member name="path_local" type="bool" setter="set_path_local" getter="is_path_local">
-			If [code]false[/code] we extrude centered on our path, if [code]true[/code] we extrude in relation to the position of our CSGPolygon when [member mode] is [constant MODE_PATH].
+			If [code]false[/code] we extrude centered on our path, if [code]true[/code] we extrude in relation to the position of our CSGPolygon3D when [member mode] is [constant MODE_PATH].
 		</member>
 		<member name="path_node" type="NodePath" setter="set_path_node" getter="get_path_node">
-			The [Shape] object containing the path along which we extrude when [member mode] is [constant MODE_PATH].
+			The [Shape3D] object containing the path along which we extrude when [member mode] is [constant MODE_PATH].
 		</member>
-		<member name="path_rotation" type="int" setter="set_path_rotation" getter="get_path_rotation" enum="CSGPolygon.PathRotation">
+		<member name="path_rotation" type="int" setter="set_path_rotation" getter="get_path_rotation" enum="CSGPolygon3D.PathRotation">
 			The method by which each slice is rotated along the path when [member mode] is [constant MODE_PATH].
 		</member>
 		<member name="polygon" type="PackedVector2Array" setter="set_polygon" getter="get_polygon" default="PackedVector2Array( 0, 0, 0, 1, 1, 1, 1, 0 )">
@@ -53,13 +53,13 @@
 	</members>
 	<constants>
 		<constant name="MODE_DEPTH" value="0" enum="Mode">
-			Shape is extruded to [member depth].
+			Shape3D is extruded to [member depth].
 		</constant>
 		<constant name="MODE_SPIN" value="1" enum="Mode">
-			Shape is extruded by rotating it around an axis.
+			Shape3D is extruded by rotating it around an axis.
 		</constant>
 		<constant name="MODE_PATH" value="2" enum="Mode">
-			Shape is extruded along a path set by a [Shape] set in [member path_node].
+			Shape3D is extruded along a path set by a [Shape3D] set in [member path_node].
 		</constant>
 		<constant name="PATH_ROTATION_POLYGON" value="0" enum="PathRotation">
 			Slice is not rotated.
