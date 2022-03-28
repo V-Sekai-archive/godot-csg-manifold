@@ -31,7 +31,9 @@
 #ifndef CSG_GIZMOS_H
 #define CSG_GIZMOS_H
 
-#include "csg_shape.h"
+#ifdef TOOLS_ENABLED
+
+#include "../csg_shape.h"
 #include "editor/editor_plugin.h"
 #include "editor/plugins/node_3d_editor_gizmos.h"
 
@@ -59,5 +61,7 @@ class EditorPluginCSG : public EditorPlugin {
 public:
 	EditorPluginCSG();
 };
+
+#endif // TOOLS_ENABLED
 
 #endif // CSG_GIZMOS_H
