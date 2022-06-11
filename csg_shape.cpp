@@ -174,9 +174,9 @@ enum {
 	MANIFOLD_MAX
 };
 static void pack_manifold(const CSGBrush *const p_mesh_merge, manifold::Manifold &r_manifold,
-		Map<int64_t, std::vector<float>> &mesh_id_properties,
-		Map<int64_t, Map<int32_t, Ref<Material>>> &mesh_materials,
-		Map<int64_t, int> &mesh_face_count, const float p_snap) {
+		HashMap<int64_t, std::vector<float>> &mesh_id_properties,
+		HashMap<int64_t, HashMap<int32_t, Ref<Material>>> &mesh_materials,
+		HashMap<int64_t, int> &mesh_face_count, const float p_snap) {
 	Ref<SurfaceTool> st;
 	st.instantiate();
 	st->begin(Mesh::PRIMITIVE_TRIANGLES);
@@ -204,7 +204,7 @@ static void pack_manifold(const CSGBrush *const p_mesh_merge, manifold::Manifold
 	mesh.triVerts.resize(mdt->get_face_count());
 	mesh.vertPos.resize(mdt->get_vertex_count());
 	mesh.vertNormal.resize(mdt->get_vertex_count());
-	Map<int32_t, Ref<Material>> materials;
+	HashMap<int32_t, Ref<Material>> materials;
 	constexpr int32_t order[3] = { 0, 2, 1 };
 	for (int face_i = 0; face_i < mdt->get_face_count(); face_i++) {
 		for (int32_t vertex_i = 0; vertex_i < 3; vertex_i++) {
@@ -235,13 +235,13 @@ static void pack_manifold(const CSGBrush *const p_mesh_merge, manifold::Manifold
 }
 
 static void unpack_manifold(const manifold::Manifold &p_manifold,
-		const Map<int64_t, std::vector<float>> &mesh_id_properties,
-		const Map<int64_t, Map<int32_t, Ref<Material>>> &mesh_materials,
-		const Map<int64_t, int> &mesh_face_count, CSGBrush *r_mesh_merge) {
+		const HashMap<int64_t, std::vector<float>> &mesh_id_properties,
+		const HashMap<int64_t, HashMap<int32_t, Ref<Material>>> &mesh_materials,
+		const HashMap<int64_t, int> &mesh_face_count, CSGBrush *r_mesh_merge) {
 	manifold::Mesh mesh = p_manifold.GetMesh();
 	manifold::MeshRelation mesh_relation = p_manifold.GetMeshRelation();
 	r_mesh_merge->faces.resize(mesh.triVerts.size());
-	std::vector<int> mesh_ids = p_manifold.MeshID2Original();
+	std::vector<int> mesh_ids = p_manifold.GetMeshIDs();
 	for (size_t triangle_i = 0; triangle_i < mesh.triVerts.size(); triangle_i++) {
 		CSGBrush::Face &face = r_mesh_merge->faces.write[triangle_i];
 		constexpr int32_t order[3] = { 0, 2, 1 };
@@ -318,9 +318,9 @@ CSGBrush *CSGShape3D::_get_brush() {
 				CSGBrush *nn = memnew(CSGBrush);
 				CSGBrush *nn2 = memnew(CSGBrush);
 				nn2->copy_from(*n2, child->get_transform());
-				Map<int64_t, std::vector<float>> mesh_id_properties;
-				Map<int64_t, Map<int32_t, Ref<Material>>> mesh_materials;
-				Map<int64_t, int> mesh_face_count;
+				HashMap<int64_t, std::vector<float>> mesh_id_properties;
+				HashMap<int64_t, HashMap<int32_t, Ref<Material>>> mesh_materials;
+				HashMap<int64_t, int> mesh_face_count;
 				manifold::Manifold manifold_n;
 				manifold_n.SetAsOriginal();
 				pack_manifold(n, manifold_n, mesh_id_properties, mesh_materials, mesh_face_count, snap);
@@ -348,16 +348,21 @@ CSGBrush *CSGShape3D::_get_brush() {
 				} else if (!manifold_n.IsManifold() && manifold_nn2.IsManifold()) {
 					manifold_nn = manifold_n;
 				} else {
-					switch (child->get_operation()) {
-						case CSGShape3D::OPERATION_UNION:
-							manifold_nn = manifold_n.Boolean(manifold_nn2, manifold::Manifold::OpType::ADD);
-							break;
-						case CSGShape3D::OPERATION_INTERSECTION:
-							manifold_nn = manifold_n.Boolean(manifold_nn2, manifold::Manifold::OpType::INTERSECT);
-							break;
-						case CSGShape3D::OPERATION_SUBTRACTION:
-							manifold_nn = manifold_n.Boolean(manifold_nn2, manifold::Manifold::OpType::SUBTRACT);
-							break;
+					try {
+						switch (child->get_operation()) {
+							case CSGShape3D::OPERATION_UNION:
+								manifold_nn = manifold_n.Boolean(manifold_nn2, manifold::Manifold::OpType::ADD);
+								break;
+							case CSGShape3D::OPERATION_INTERSECTION:
+								manifold_nn = manifold_n.Boolean(manifold_nn2, manifold::Manifold::OpType::INTERSECT);
+								break;
+							case CSGShape3D::OPERATION_SUBTRACTION:
+								manifold_nn = manifold_n.Boolean(manifold_nn2, manifold::Manifold::OpType::SUBTRACT);
+								break;
+						}
+					} catch (const std::exception &e) {
+						ERR_PRINT(e.what());
+						manifold_nn = manifold::Manifold();
 					}
 				}
 				if (!manifold_nn.IsManifold() || manifold_nn.IsEmpty()) {
